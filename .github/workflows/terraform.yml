@@ -32,7 +32,28 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  snyk-iac:
+    runs-on: ubuntu-latest
+    env:
+      SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install Snyk CLI
+        run: npm install --global snyk
+
+      - name: Scan Terraform with Snyk IaC
+        run: snyk iac test az-terraform --severity-threshold=high
+
   terraform-plan:
+    needs: snyk-iac
     runs-on: ubuntu-latest
     defaults:
       run:
