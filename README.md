@@ -2,7 +2,7 @@
 
 ## GitHub Actions
 
-The workflow in `.github/workflows/terraform.yml` runs `terraform plan` for pull requests and applies changes on pushes to `develop` or from a manual workflow run.
+The workflow in `.github/workflows/terraform.yml` runs `terraform plan` for pull requests and applies changes on pushes to `develop` or from a manual workflow run. Apply uses the GitHub `production` environment, which must have a required reviewer configured to approve deployments.
 
 Configure these repository secrets before using it:
 
