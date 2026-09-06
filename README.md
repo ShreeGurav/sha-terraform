@@ -2,7 +2,7 @@
 
 ## GitHub Actions
 
-The workflow in `.github/workflows/terraform.yml` runs `terraform plan` for pull requests and applies changes on pushes to `develop` or from a manual workflow run. Apply uses the GitHub `production` environment, which must have a required reviewer configured to approve deployments.
+The workflow in `.github/workflows/terraform.yml` runs `terraform plan` for pull requests and applies changes on pushes to `develop`. Manual runs have `plan`, `apply`, and `destroy` actions. Apply and destroy use the GitHub `production` environment, which must have a required reviewer configured to approve deployments. The `destroy` action deletes all resources managed by this Terraform configuration.
 
 Configure these repository secrets before using it:
 

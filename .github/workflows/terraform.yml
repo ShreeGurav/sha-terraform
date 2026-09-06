@@ -12,6 +12,16 @@ on:
       - "az-terraform/**"
       - ".github/workflows/terraform.yml"
   workflow_dispatch:
+    inputs:
+      action:
+        description: Terraform action
+        required: true
+        type: choice
+        options:
+          - plan
+          - apply
+          - destroy
+        default: plan
 
 permissions:
   contents: read
@@ -59,7 +69,12 @@ jobs:
         run: terraform validate
 
       - name: Terraform plan
+        if: github.event_name != 'workflow_dispatch' || inputs.action != 'destroy'
         run: terraform plan -input=false -out=tfplan
+
+      - name: Terraform destroy plan
+        if: github.event_name == 'workflow_dispatch' && inputs.action == 'destroy'
+        run: terraform plan -destroy -input=false -out=tfplan
 
       - name: Upload Terraform plan
         uses: actions/upload-artifact@v4
@@ -69,7 +84,7 @@ jobs:
           retention-days: 1
 
   terraform-apply:
-    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.action == 'apply')
     needs: terraform-plan
     runs-on: ubuntu-latest
     environment:
@@ -109,4 +124,47 @@ jobs:
           path: az-terraform
 
       - name: Terraform apply
+        run: terraform apply -input=false -auto-approve tfplan
+
+  terraform-destroy:
+    if: github.event_name == 'workflow_dispatch' && inputs.action == 'destroy'
+    needs: terraform-plan
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+    defaults:
+      run:
+        working-directory: az-terraform
+    env:
+      ARM_USE_AZUREAD: true
+      ARM_CLIENT_ID: ${{ fromJSON(secrets.AZURE_CREDENTIALS).clientId }}
+      ARM_CLIENT_SECRET: ${{ fromJSON(secrets.AZURE_CREDENTIALS).clientSecret }}
+      ARM_SUBSCRIPTION_ID: ${{ fromJSON(secrets.AZURE_CREDENTIALS).subscriptionId }}
+      ARM_TENANT_ID: ${{ fromJSON(secrets.AZURE_CREDENTIALS).tenantId }}
+      TF_VAR_admin_ssh_public_key: ${{ secrets.TF_VAR_ADMIN_SSH_PUBLIC_KEY }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Azure login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.8.5
+
+      - name: Terraform init
+        run: terraform init -input=false
+
+      - name: Download Terraform destroy plan
+        uses: actions/download-artifact@v4
+        with:
+          name: terraform-plan
+          path: az-terraform
+
+      - name: Terraform destroy
         run: terraform apply -input=false -auto-approve tfplan
