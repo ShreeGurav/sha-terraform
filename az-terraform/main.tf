@@ -14,7 +14,7 @@ provider "azurerm" {
   features {}
 }
 
-variable "admin_password" {
+variable "admin_ssh_public_key" {
   type      = string
   sensitive = true
 }
@@ -65,11 +65,15 @@ resource "azurerm_linux_virtual_machine" "example" {
   location                        = azurerm_resource_group.example.location
   size                            = "Standard_D4_v5"
   admin_username                  = "adminuser"
-  admin_password                  = var.admin_password
-  disable_password_authentication = false
+  disable_password_authentication = true
   network_interface_ids = [
     azurerm_network_interface.example.id,
   ]
+
+  admin_ssh_key {
+    username   = "adminuser"
+    public_key = var.admin_ssh_public_key
+  }
 
   os_disk {
     caching              = "ReadWrite"
