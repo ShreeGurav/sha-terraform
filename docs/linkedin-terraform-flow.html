@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Terraform CI/CD | Azure</title>
+  <style>
+    :root {
+      --ink: #12233f;
+      --muted: #60708b;
+      --line: #c8d5e8;
+      --cyan: #13b8c7;
+      --blue: #2271d1;
+      --green: #25a66a;
+      --orange: #f19b38;
+      --red: #e36b69;
+      --paper: #f5f8fc;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--ink);
+      font-family: Avenir Next, Helvetica Neue, sans-serif;
+      background: radial-gradient(circle at 80% 0%, #dceeff 0, transparent 34%), var(--paper);
+    }
+    .board {
+      width: min(1440px, 100%);
+      margin: auto;
+      padding: 48px 54px 42px;
+      overflow: hidden;
+    }
+    .eyebrow {
+      color: var(--blue);
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+    }
+    h1 {
+      max-width: 900px;
+      margin: 12px 0 10px;
+      font-size: clamp(36px, 5vw, 72px);
+      line-height: .98;
+      letter-spacing: -.04em;
+    }
+    .intro {
+      max-width: 720px;
+      margin: 0;
+      color: var(--muted);
+      font-size: 18px;
+      line-height: 1.5;
+    }
+    .legend {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+      margin: 30px 0 16px;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+    }
+    .legend span { display: inline-flex; align-items: center; gap: 8px; }
+    .dot { width: 9px; height: 9px; border-radius: 50%; }
+    .diagram-wrap {
+      position: relative;
+      margin-top: 10px;
+      padding: 18px 0 0;
+      border-top: 1px solid var(--line);
+    }
+    svg { display: block; width: 100%; height: auto; overflow: visible; }
+    .node { filter: drop-shadow(0 9px 16px rgba(18, 35, 63, .09)); }
+    .node-box { fill: #fff; stroke: var(--line); stroke-width: 2; }
+    .node-title { fill: var(--ink); font-size: 17px; font-weight: 800; }
+    .node-copy { fill: var(--muted); font-size: 13px; }
+    .node-badge { font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+    .flow { fill: none; stroke: var(--line); stroke-width: 4; stroke-linecap: round; stroke-dasharray: 7 12; animation: march 1.4s linear infinite; }
+    .flow.safe { stroke: var(--green); }
+    .flow.warn { stroke: var(--orange); }
+    .flow.destroy { stroke: var(--red); }
+    .pulse { fill: #fff; stroke: var(--cyan); stroke-width: 4; animation: travel 4.5s ease-in-out infinite; }
+    .pulse.two { animation-delay: 1.5s; }
+    .pulse.three { animation-delay: 3s; }
+    .status { animation: breathe 2.2s ease-in-out infinite; transform-origin: center; }
+    .footer {
+      display: flex;
+      justify-content: space-between;
+      gap: 24px;
+      align-items: center;
+      margin-top: 18px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .footer strong { color: var(--ink); }
+    .handle { color: var(--blue); font-weight: 800; }
+    @keyframes march { to { stroke-dashoffset: -38; } }
+    @keyframes travel { 0%, 12% { opacity: 0; offset-distance: 0%; } 22%, 68% { opacity: 1; } 88%, 100% { opacity: 0; offset-distance: 100%; } }
+    @keyframes breathe { 0%, 100% { opacity: .65; } 50% { opacity: 1; } }
+    @media (max-width: 760px) {
+      .board { padding: 30px 22px; }
+      .intro { font-size: 16px; }
+      .diagram-wrap { overflow-x: auto; }
+      svg { min-width: 1050px; }
+      .footer { align-items: flex-start; flex-direction: column; gap: 6px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="board">
+    <div class="eyebrow">Infrastructure as Code / Azure</div>
+    <h1>From pull request to production infrastructure.</h1>
+    <p class="intro">A gated Terraform delivery flow using GitHub Actions, Snyk IaC, Azure authentication, and an approved plan artifact.</p>
+
+    <div class="legend" aria-label="Diagram legend">
+      <span><i class="dot" style="background: var(--cyan)"></i>automated flow</span>
+      <span><i class="dot" style="background: var(--green)"></i>security gate</span>
+      <span><i class="dot" style="background: var(--orange)"></i>approval boundary</span>
+      <span><i class="dot" style="background: var(--red)"></i>controlled destroy</span>
+    </div>
+
+    <section class="diagram-wrap" aria-label="Animated Terraform CI/CD diagram">
+      <svg viewBox="0 0 1360 570" role="img" aria-labelledby="title desc">
+        <title id="title">Animated Terraform CI/CD flow for Azure</title>
+        <desc id="desc">A pull request or push enters GitHub Actions, passes Snyk security scanning, Terraform validation and plan, then reaches an approved Azure apply. Manual destroy follows a separate controlled path.</desc>
+        <defs>
+          <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0 0L10 5L0 10z" fill="#c8d5e8" /></marker>
+          <marker id="arrow-green" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0 0L10 5L0 10z" fill="#25a66a" /></marker>
+          <marker id="arrow-orange" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0 0L10 5L0 10z" fill="#f19b38" /></marker>
+          <marker id="arrow-red" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0 0L10 5L0 10z" fill="#e36b69" /></marker>
+        </defs>
+
+        <path class="flow" d="M220 170H330" marker-end="url(#arrow)" />
+        <path class="flow safe" d="M530 170H640" marker-end="url(#arrow-green)" />
+        <path class="flow safe" d="M840 170H950" marker-end="url(#arrow-green)" />
+        <path class="flow warn" d="M1150 170H1230" marker-end="url(#arrow-orange)" />
+        <path class="flow destroy" d="M1050 270V420H1150" marker-end="url(#arrow-red)" />
+        <path class="flow" d="M1180 270V350H740V270" marker-end="url(#arrow)" />
+
+        <circle class="pulse" r="9"><animateMotion dur="4.5s" repeatCount="indefinite" path="M220 170H330" /></circle>
+        <circle class="pulse two" r="9"><animateMotion dur="4.5s" repeatCount="indefinite" path="M530 170H640" /></circle>
+        <circle class="pulse three" r="9"><animateMotion dur="4.5s" repeatCount="indefinite" path="M840 170H950" /></circle>
+
+        <g class="node" transform="translate(30 100)">
+          <rect class="node-box" width="190" height="140" rx="16" />
+          <circle cx="28" cy="30" r="7" fill="var(--cyan)" />
+          <text class="node-badge" x="48" y="35" fill="var(--cyan)">TRIGGER</text>
+          <text class="node-title" x="20" y="72">GitHub</text>
+          <text class="node-copy" x="20" y="96">Pull request</text>
+          <text class="node-copy" x="20" y="116">or push to develop</text>
+        </g>
+        <g class="node" transform="translate(330 100)">
+          <rect class="node-box" width="200" height="140" rx="16" />
+          <circle cx="28" cy="30" r="7" fill="var(--green)" />
+          <text class="node-badge" x="48" y="35" fill="var(--green)">SECURITY</text>
+          <text class="node-title" x="20" y="72">Snyk IaC</text>
+          <text class="node-copy" x="20" y="96">High / critical issues</text>
+          <text class="node-copy" x="20" y="116">stop the pipeline</text>
+        </g>
+        <g class="node" transform="translate(640 100)">
+          <rect class="node-box" width="200" height="140" rx="16" />
+          <circle cx="28" cy="30" r="7" fill="var(--green)" />
+          <text class="node-badge" x="48" y="35" fill="var(--green)">VERIFY</text>
+          <text class="node-title" x="20" y="72">Terraform</text>
+          <text class="node-copy" x="20" y="96">fmt + init + validate</text>
+          <text class="node-copy" x="20" y="116">plan saved as artifact</text>
+        </g>
+        <g class="node" transform="translate(950 100)">
+          <rect class="node-box" width="200" height="140" rx="16" />
+          <circle cx="28" cy="30" r="7" fill="var(--orange)" />
+          <text class="node-badge" x="48" y="35" fill="var(--orange)">CONTROL</text>
+          <text class="node-title" x="20" y="72">Production</text>
+          <text class="node-copy" x="20" y="96">Environment approval</text>
+          <text class="node-copy" x="20" y="116">required before apply</text>
+        </g>
+        <g class="node" transform="translate(1230 100)">
+          <rect class="node-box" width="100" height="140" rx="16" />
+          <circle cx="28" cy="30" r="7" fill="var(--blue)" />
+          <text class="node-badge" x="20" y="62" fill="var(--blue)">AZURE</text>
+          <text class="node-title" x="20" y="90">Apply</text>
+          <text class="node-copy" x="20" y="114">VM + VNet</text>
+        </g>
+
+        <g class="node" transform="translate(580 350)">
+          <rect class="node-box" width="320" height="120" rx="16" />
+          <circle class="status" cx="28" cy="30" r="7" fill="var(--red)" />
+          <text class="node-badge" x="48" y="35" fill="var(--red)">MANUAL ONLY</text>
+          <text class="node-title" x="20" y="72">Destroy</text>
+          <text class="node-copy" x="20" y="96">workflow_dispatch + approval</text>
+        </g>
+        <text x="30" y="530" fill="var(--muted)" font-size="14" font-weight="700">Secrets stay in GitHub Actions: Azure credentials, Snyk token, and VM SSH key.</text>
+      </svg>
+    </section>
+
+    <div class="footer">
+      <span><strong>sha-terraform</strong> / repeatable infrastructure delivery</span>
+      <span class="handle">#Terraform #Azure #GitHubActions #DevSecOps</span>
+    </div>
+  </main>
+</body>
+</html>
